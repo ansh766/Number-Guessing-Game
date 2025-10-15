@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number Guessing Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 600px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            min-height: 500px;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        /* Welcome Page Styles */
+        .welcome-page {
+            display: block;
+            animation: fadeIn 0.6s ease-in;
+        }
+
+        .welcome-page.hidden {
+            display: none;
+        }
+
+        .welcome-title {
+            font-size: 3rem;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .welcome-subtitle {
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.3rem;
+            font-weight: 500;
+        }
+
+        .rules-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 35px;
+            border-left: 5px solid #667eea;
+            text-align: left;
+        }
+
+        .rules-title {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .rules-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .rules-list li {
+            padding: 12px 0;
+            font-size: 1.1rem;
+            color: #555;
+            border-bottom: 1px solid #e9ecef;
+            position: relative;
+            padding-left: 35px;
+        }
+
+        .rules-list li:last-child {
+            border-bottom: none;
+        }
+
+        .rules-list li::before {
+            content: "✨";
+            position: absolute;
+            left: 0;
+            top: 12px;
+            font-size: 1.2rem;
+        }
+
+        .difficulty-section {
+            background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 35px;
+        }
+
+        .difficulty-title {
+            font-size: 1.4rem;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .difficulty-text {
+            font-size: 1.1rem;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .start-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .start-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+        }
+
+        .start-button:active {
+            transform: translateY(-1px);
+        }
+
+        /* Game Page Styles */
+        .game-page {
+            display: none;
+            animation: slideIn 0.6s ease-out;
+        }
+
+        .game-page.active {
+            display: block;
+        }
+
+        .game-title {
+            font-size: 2.5rem;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .game-subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .game-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .range-text {
+            font-size: 1.1rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .attempts-text {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .input-section {
+            margin-bottom: 25px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .number-input {
+            width: 100%;
+            max-width: 200px;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .number-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .guess-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .guess-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .guess-button:active {
+            transform: translateY(0);
+        }
+
+        .guess-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .button-section {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .hint-button {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .hint-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .hint-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .play-again-button {
+            background: linear-gradient(135deg, #fd7e14 0%, #e83e8c 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .play-again-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(253, 126, 20, 0.3);
+        }
+
+        .back-button {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        .back-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+        }
+
+        .context-box {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px solid #e1e5e9;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .context-content {
+            font-size: 1.1rem;
+            color: #666;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        .context-box.success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .context-box.success .context-content {
+            color: #155724;
+            font-weight: 600;
+        }
+
+        .context-box.hint {
+            background: #fff3cd;
+            border-color: #ffeaa7;
+        }
+
+        .context-box.hint .context-content {
+            color: #856404;
+            font-weight: 500;
+        }
+
+        .context-box.error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        .context-box.error .context-content {
+            color: #721c24;
+            font-weight: 500;
+        }
+
+        .attempts-counter {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            margin-top: 10px;
+        }
+
+        .attempts-counter .attempts-text {
+            font-size: 1rem;
+            color: #495057;
+            font-weight: 500;
+        }
+
+        .attempts-counter strong {
+            color: #667eea;
+            font-size: 1.1rem;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            .welcome-title {
+                font-size: 2.2rem;
+            }
+            
+            .game-title {
+                font-size: 2rem;
+            }
+            
+            .button-section {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .hint-button,
+            .play-again-button {
+                width: 100%;
+                max-width: 200px;
+            }
+
+            .back-button {
+                position: static;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Welcome Page -->
+        <div class="welcome-page" id="welcomePage">
+            <h1 class="welcome-title">🎯 Number Guessing Game</h1>
+            <p class="welcome-subtitle">Test your guessing skills with this exciting challenge!</p>
+            
+            <div class="rules-section">
+                <h2 class="rules-title">📋 Game Rules</h2>
+                <ul class="rules-list">
+                    <li>I will think of a number between <strong>1 and 100</strong></li>
+                    <li>You have <strong>5 attempts</strong> to guess the correct number</li>
+                    <li>After each guess, I'll tell you if your number is too high or too low</li>
+                    <li>Use the <strong>"Get Hint"</strong> button to get a helpful clue (costs 2 attempts)</li>
+                    <li>Win by guessing the number within your attempts!</li>
+                    <li>Use <strong>"Play Again"</strong> to start a new game anytime</li>
+                </ul>
+            </div>
+
+            <div class="difficulty-section">
+                <h3 class="difficulty-title">🎮 Challenge Level</h3>
+                <p class="difficulty-text">
+                    This game tests your logical thinking and number sense. 
+                    Use strategy to narrow down the possibilities with each guess. 
+                    Good luck and have fun! 🍀
+                </p>
+            </div>
+
+            <button class="start-button" id="startGameBtn">🚀 Start Game</button>
+        </div>
+
+        <!-- Game Page -->
+        <div class="game-page" id="gamePage">
+            <button class="back-button" id="backBtn">← Back to Rules</button>
+            
+            <h1 class="game-title">🎯 Number Guessing Game</h1>
+            <p class="game-subtitle">Can you guess the mystery number?</p>
+            
+            <div class="game-info">
+                <div class="range-text">Guess a number between <strong>1 and 100</strong></div>
+                <div class="attempts-text">
+                    You have 5 chances to find the correct number! <br>
+                    <strong>Note:</strong> If you click on Hint button, your attempts count decreases by 2
+                </div>
+            </div>
+
+            <div class="input-section">
+                <label for="guessInput" class="input-label">Enter your guess:</label>
+                <input type="number" id="guessInput" class="number-input" min="1" max="100" placeholder="?">
+                <button class="guess-button" id="submitGuess">Make Guess</button>
+            </div>
+
+            <div class="button-section">
+                <button class="hint-button" id="hintButton">💡 Get Hint</button>
+                <button class="play-again-button" id="playAgainButton">🔄 Play Again</button>
+            </div>
+
+            <div class="context-box" id="contextBox">
+                <div class="context-content" id="answerBox">
+                    Welcome to the Number Guessing Game! Make your first guess.
+                </div>
+            </div>
+
+            <div class="attempts-counter" id="attemptsCounter">
+                <span class="attempts-text">Attempts remaining: <strong id="remainingAttempts">5</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Page Navigation
+        const welcomePage = document.getElementById('welcomePage');
+        const gamePage = document.getElementById('gamePage');
+        const startGameBtn = document.getElementById('startGameBtn');
+        const backBtn = document.getElementById('backBtn');
+
+        // Game Elements
+        const button = document.getElementById('submitGuess');
+        const input = document.getElementById('guessInput');
+        const answerBox = document.getElementById('answerBox');
+        const contextBox = document.getElementById('contextBox');
+        const remainingAttemptsSpan = document.getElementById('remainingAttempts');
+        const hint = document.getElementById('hintButton');
+        const restart = document.getElementById('playAgainButton');
+
+        // Game Variables
+        let random = Math.floor(Math.random() * 100) + 1;
+        let attempts = 5;
+        let gameOver = false;
+
+        // Page Navigation Functions
+        function showGamePage() {
+            welcomePage.classList.add('hidden');
+            gamePage.classList.add('active');
+            input.focus();
+        }
+
+        function showWelcomePage() {
+            welcomePage.classList.remove('hidden');
+            gamePage.classList.remove('active');
+            resetGame();
+        }
+
+        // Game Functions
+        function updateContextBox(message, type = 'normal') {
+            answerBox.textContent = message;
+            contextBox.className = 'context-box';
+            if (type) {
+                contextBox.classList.add(type);
+            }
+        }
+
+        function updateAttemptsDisplay() {
+            remainingAttemptsSpan.textContent = attempts;
+        }
+
+        function clearInput() {
+            input.value = "";
+        }
+
+        function resetGame() {
+            random = Math.floor(Math.random() * 100) + 1;
+            attempts = 5;
+            gameOver = false;
+            clearInput();
+            updateAttemptsDisplay();
+            updateContextBox("Welcome to the Number Guessing Game! Make your first guess.");
+            button.disabled = false;
+            hint.disabled = false;
+        }
+
+        // Event Listeners
+        startGameBtn.addEventListener('click', showGamePage);
+        backBtn.addEventListener('click', showWelcomePage);
+
+        restart.addEventListener('click', resetGame);
+
+        hint.addEventListener('click', () => {
+            if (gameOver) return;
+            
+            const hintMin = Math.max(1, random - 10);
+            const hintMax = Math.min(100, random + 10);
+            updateContextBox(`💡 Hint: The correct answer is between ${hintMin} and ${hintMax}`, 'hint');
+            
+            attempts -= 2;
+            updateAttemptsDisplay();
+            
+            if (attempts <= 0) {
+                updateContextBox(`❌ Game Over! You ran out of attempts. The correct number was ${random}`, 'error');
+                gameOver = true;
+                button.disabled = true;
+                hint.disabled = true;
+            }
+        });
+
+        button.addEventListener('click', () => {
+            if (gameOver) return;
+
+            const num = parseInt(input.value);
+            if (isNaN(num) || num < 1 || num > 100) {
+                updateContextBox("⛔ Please enter a valid number between 1 and 100.", 'error');
+                return;
+            }
+
+            attempts--;
+            updateAttemptsDisplay();
+
+            if (num === random) {
+                updateContextBox(`🎉 Congratulations! You guessed the number ${random} correctly!`, 'success');
+                gameOver = true;
+                button.disabled = true;
+                hint.disabled = true;
+            } else if (attempts === 0) {
+                updateContextBox(`❌ Game Over! The correct number was ${random}`, 'error');
+                gameOver = true;
+                button.disabled = true;
+                hint.disabled = true;
+            } else if (num > random) {
+                updateContextBox(`📉 Too high! Try a lower number. Attempts left: ${attempts}`);
+            } else {
+                updateContextBox(`📈 Too low! Try a higher number. Attempts left: ${attempts}`);
+            }
+
+            clearInput();
+        });
+
+        // Enter key support
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                button.click();
+            }
+        });
+
+        // Initialize
+        updateAttemptsDisplay();
+    </script>
+</body>
+</html>
